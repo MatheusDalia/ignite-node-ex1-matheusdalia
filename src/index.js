@@ -11,9 +11,9 @@ app.use(express.json());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  const {name} = request.headers;
+  const { username } = request.headers;
 
-  const user = users.find((user) => user.name === name)
+  const user = users.find((user) => user.username === username)
 
   if(!user){
     return response.status(404).json({ error: "User not found" });
@@ -27,21 +27,23 @@ function checksExistsUserAccount(request, response, next) {
 app.post('/users', (request, response) => {
   const {name, username} = request.body;
   const id = uuidv4();
-  
+
   const checkUser = users.find((user) => user.name === name)
 
   if(checkUser){
     return response.status(400).json({ error: "User already exists!" });
   }
 
-  users.push({
-    name,
-    username,
-    id,
-    todos: []
-  });
+  const user = {
+      id,
+      name,
+      username,
+      todos: []
+  }
 
-  return response.status(201).send();
+  users.push(user);
+
+  return response.status(201).json(user);
 });
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
@@ -53,20 +55,25 @@ app.get('/todos', checksExistsUserAccount, (request, response) => {
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
   const {user} = request;
-
   const { title, deadline} = request.body;
   const id = uuidv4();
-  user.todos.push({
-    id, title, deadline, done: false, created_at: new Date()
-  });
+  
+  const todo = {
+    id, 
+    title,
+    deadline: new Date(deadline),
+    done: false,
+    created_at: new Date()}
+  
+  user.todos.push(todo);
 
-  return response.status(201).send();
+  return response.status(201).json(todo);
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   const {user} = request;
-  const {id} = request.params;
   const { title, deadline} = request.body;
+  const {id} = request.params;
 
   const todo = user.todos.find(todo => todo.id === id)
 
@@ -75,7 +82,7 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   }
 
   todo.title = title;
-  todo.deadline = deadline;
+  todo.deadline = new Date(deadline);
 
   return response.json(todo);
 

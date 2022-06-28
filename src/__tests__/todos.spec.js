@@ -34,6 +34,7 @@ describe('Todos', () => {
   });
 
   it('should be able to create a new todo', async () => {
+    
     const userResponse = await request(app)
       .post('/users')
       .send({
@@ -42,7 +43,7 @@ describe('Todos', () => {
       });
 
     const todoDate = new Date();
-
+   
     const response = await request(app)
       .post('/todos')
       .send({
